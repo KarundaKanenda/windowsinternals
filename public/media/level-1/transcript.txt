@@ -1,0 +1,43 @@
+Meet the operating system
+AI-authored script and diagrams, locally rendered with synthetic narration. These are teaching illustrations, not live Windows recordings.
+
+00:00:00  Welcome to the training workstation
+Welcome to Inside the Machine, where a training workstation lets you experiment, make predictions, and discover what happens behind an application. Level one starts with an installed program and a running instance; no debugger, Windows experience, or virtual machine is needed. Your goal is to connect a few observations into a useful explanation of a healthy application, rather than memorize disconnected names.
+
+00:00:25  A program can exist without running
+Atlas Notes is installed but not open: its executable is a program on disk, containing instructions and data that can be loaded. The file remains when no instances are running, so finding it in a folder does not prove that instructions are executing. In First Contact, inspect the file, predict what launching changes, and watch the process list: installed is not the same as running.
+
+00:00:50  One program, independent processes
+Our fictional Atlas Notes supports independent instances: opening it twice creates two processes from one executable, each with a different live process identifier. Close one and observe the survivor; the executable remains, because closing an instance does not uninstall the program. Real applications may reuse or create multiple processes; this model is deliberately simple, and Windows can reuse identifiers after a process exits.
+
+00:01:15  A process holds context and resources
+A process holds execution context and resources, including a virtual address space and one or more threads that can execute instructions. It is more than a window: processes can exist without visible windows, and a visible application can involve several processes. For now, inspect identity and ownership: which process owns this work, what belongs to it, and what does your evidence actually establish?
+
+00:01:40  Threads do the executing
+Threads execute instructions inside a process: one might handle interface work while another performs an export, both belonging to the same process. A long export on the interface thread can delay input; moving suitable work to a worker can help the interface progress. But another thread does not create more processor capacity; distinguish who owns the work from when it can actually run.
+
+00:02:05  Taking turns is not running in parallel
+On one logical processor, our model runs one thread at a time; multiple threads can make progress by taking turns. A ready thread can run; a waiting thread needs an event or resource first, so unfinished work does not necessarily mean busy computation. This timeline illustrates states, not Windows scheduling policy; later levels explore processors and dependencies, while today you distinguish ready, running, and waiting.
+
+00:02:30  An address needs a process context
+A virtual address needs an address-space context: the same written address in two processes need not refer to the same underlying data. In A Private Address Book, inspect separate mappings, change one process's value, and read the other value to check your prediction. Do not confuse the virtual map with physical memory; deeper questions about backing, commitment, and residency belong to the memory level.
+
+00:02:55  Isolation is a model, not a magical wall
+Separate address spaces help isolate ordinary application memory, but processes can still communicate or intentionally share memory through suitable mechanisms. Our experiment excludes shared mappings and cross-process access, so an unchanged second value describes these particular mappings, not every possible interaction. Explain the experiment's conditions as well as its result; later, sharing and copy-on-write will add depth to this address-space model.
+
+00:03:20  Follow a request across the boundary
+Applications can calculate in user mode, while selected operations, such as our modeled file request, need services across the user and kernel boundary. Follow the request: in this service path, the same calling thread enters kernel mode and returns with a result, without creating another process. Not every application interface enters the kernel, and kernel mode does not guarantee unrestricted access; permissions still matter.
+
+00:03:45  Build a map of responsibilities
+Connect the pieces: applications request services, executive components manage memory and input and output, and the kernel coordinates activities including thread scheduling. Drivers participate in selected device paths, with hardware underneath; explain these responsibilities using the request traces you have already followed. This maps cooperation, not a universal call sequence; also distinguish the kernel component from everything that executes in kernel mode.
+
+00:04:10  Predict, experiment, explain, transfer
+Predict, change a small model, and inspect evidence: a mistaken prediction opens a learning opportunity rather than costing points. Choose observations that support your explanation, use hints if needed, and apply the concept to a changed situation rather than repeat buttons. This video is optional; investigations unlock mastery without a timer, while deeper notes and references remain available when you want more detail.
+
+00:04:35  Your Level 1 mission
+By the end, distinguish a program, a process, and a thread using observations, not definitions alone, and explain why a virtual address needs context. Follow a selected operating-system request and connect the ideas into an evidence-backed description of a healthy workstation. This is a teaching campaign, not live Windows telemetry or a complete emulator; start First Contact when ready, and build understanding one discovery at a time.
+
+References
+Microsoft: processes and threads: https://learn.microsoft.com/en-us/windows/win32/procthread/about-processes-and-threads
+Microsoft: virtual address spaces: https://learn.microsoft.com/en-us/windows-hardware/drivers/gettingstarted/virtual-address-spaces
+Microsoft: user mode and kernel mode: https://learn.microsoft.com/en-us/windows-hardware/drivers/gettingstarted/user-mode-and-kernel-mode

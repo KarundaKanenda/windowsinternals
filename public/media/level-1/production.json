@@ -1,0 +1,11 @@
+{
+  "sourceSha256": "09bc1070dd545ab1565796588c9d0a9cdcffc125717c73161a56f0a41809da17",
+  "durationSeconds": 300,
+  "width": 1280,
+  "height": 720,
+  "voice": "en_US-ljspeech-medium",
+  "voiceEngine": "Piper",
+  "voiceModelSha256": "6f52a751e2349abe7a76735eb09dc1875298c77ea2342ffd2fef79ff81b87f22",
+  "captionCues": 36,
+  "production": "AI-authored script and diagrams, locally rendered with synthetic narration. These are teaching illustrations, not live Windows recordings."
+}

@@ -1,0 +1,23 @@
+Level 1 briefing narration
+
+The included audio was synthesized locally with Piper 1.8.0 from the original
+Inside the Machine briefing script. No macOS System Voice audio is included.
+
+Voice: en_US-ljspeech-medium
+Model SHA-256:
+6f52a751e2349abe7a76735eb09dc1875298c77ea2342ffd2fef79ff81b87f22
+
+The model repository declares MIT licensing:
+https://huggingface.co/rhasspy/piper-voices/blob/main/README.md
+
+The voice-specific model card identifies the public-domain LJ Speech dataset:
+https://huggingface.co/rhasspy/piper-voices/blob/main/en/en_US/ljspeech/medium/MODEL_CARD
+
+Dataset licensing and credits:
+https://keithito.com/LJ-Speech-Dataset/
+
+Piper is a production tool only. Neither its runtime nor the voice model is
+redistributed in the portal or Docker runtime image.
+https://github.com/OHF-Voice/piper1-gpl
+
+production.json records the source and model hashes for the included render.

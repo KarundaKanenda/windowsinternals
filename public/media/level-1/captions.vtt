@@ -1,0 +1,201 @@
+WEBVTT
+
+1
+00:00:00.500 --> 00:00:08.664
+Welcome to Inside the Machine, where a training workstation lets you
+experiment, make predictions, and discover what happens behind an
+application.
+
+2
+00:00:08.864 --> 00:00:16.610
+Level one starts with an installed program and a running instance;
+no debugger, Windows experience, or virtual machine is needed.
+
+3
+00:00:16.810 --> 00:00:24.939
+Your goal is to connect a few observations into a useful explanation
+of a healthy application, rather than memorize disconnected names.
+
+4
+00:00:25.500 --> 00:00:33.732
+Atlas Notes is installed but not open: its executable is a program
+on disk, containing instructions and data that can be loaded.
+
+5
+00:00:33.932 --> 00:00:40.863
+The file remains when no instances are running, so finding it in a
+folder does not prove that instructions are executing.
+
+6
+00:00:41.063 --> 00:00:49.004
+In First Contact, inspect the file, predict what launching changes,
+and watch the process list: installed is not the same as running.
+
+7
+00:00:50.500 --> 00:00:59.322
+Our fictional Atlas Notes supports independent instances: opening it
+twice creates two processes from one executable, each with a
+different live process identifier.
+
+8
+00:00:59.522 --> 00:01:05.856
+Close one and observe the survivor; the executable remains, because
+closing an instance does not uninstall the program.
+
+9
+00:01:06.056 --> 00:01:14.941
+Real applications may reuse or create multiple processes; this model
+is deliberately simple, and Windows can reuse identifiers after a
+process exits.
+
+10
+00:01:15.500 --> 00:01:23.876
+A process holds execution context and resources, including a virtual
+address space and one or more threads that can execute instructions.
+
+11
+00:01:24.076 --> 00:01:31.489
+It is more than a window: processes can exist without visible
+windows, and a visible application can involve several processes.
+
+12
+00:01:31.689 --> 00:01:39.936
+For now, inspect identity and ownership: which process owns this
+work, what belongs to it, and what does your evidence actually
+establish?
+
+13
+00:01:40.500 --> 00:01:49.516
+Threads execute instructions inside a process: one might handle
+interface work while another performs an export, both belonging to
+the same process.
+
+14
+00:01:49.716 --> 00:01:57.652
+A long export on the interface thread can delay input; moving
+suitable work to a worker can help the interface progress.
+
+15
+00:01:57.852 --> 00:02:04.932
+But another thread does not create more processor capacity;
+distinguish who owns the work from when it can actually run.
+
+16
+00:02:05.500 --> 00:02:12.525
+On one logical processor, our model runs one thread at a time;
+multiple threads can make progress by taking turns.
+
+17
+00:02:12.725 --> 00:02:20.783
+A ready thread can run; a waiting thread needs an event or resource
+first, so unfinished work does not necessarily mean busy
+computation.
+
+18
+00:02:20.983 --> 00:02:29.926
+This timeline illustrates states, not Windows scheduling policy;
+later levels explore processors and dependencies, while today you
+distinguish ready, running, and waiting.
+
+19
+00:02:30.500 --> 00:02:38.384
+A virtual address needs an address-space context: the same written
+address in two processes need not refer to the same underlying data.
+
+20
+00:02:38.584 --> 00:02:46.473
+In A Private Address Book, inspect separate mappings, change one
+process's value, and read the other value to check your prediction.
+
+21
+00:02:46.673 --> 00:02:54.935
+Do not confuse the virtual map with physical memory; deeper
+questions about backing, commitment, and residency belong to the
+memory level.
+
+22
+00:02:55.500 --> 00:03:03.651
+Separate address spaces help isolate ordinary application memory,
+but processes can still communicate or intentionally share memory
+through suitable mechanisms.
+
+23
+00:03:03.851 --> 00:03:12.704
+Our experiment excludes shared mappings and cross-process access, so
+an unchanged second value describes these particular mappings, not
+every possible interaction.
+
+24
+00:03:12.904 --> 00:03:19.923
+Explain the experiment's conditions as well as its result; later,
+sharing and copy-on-write will add depth to this address-space
+model.
+
+25
+00:03:20.500 --> 00:03:29.350
+Applications can calculate in user mode, while selected operations,
+such as our modeled file request, need services across the user and
+kernel boundary.
+
+26
+00:03:29.550 --> 00:03:37.605
+Follow the request: in this service path, the same calling thread
+enters kernel mode and returns with a result, without creating
+another process.
+
+27
+00:03:37.805 --> 00:03:44.924
+Not every application interface enters the kernel, and kernel mode
+does not guarantee unrestricted access; permissions still matter.
+
+28
+00:03:45.500 --> 00:03:54.399
+Connect the pieces: applications request services, executive
+components manage memory and input and output, and the kernel
+coordinates activities including thread scheduling.
+
+29
+00:03:54.599 --> 00:04:02.652
+Drivers participate in selected device paths, with hardware
+underneath; explain these responsibilities using the request traces
+you have already followed.
+
+30
+00:04:02.852 --> 00:04:09.917
+This maps cooperation, not a universal call sequence; also
+distinguish the kernel component from everything that executes in
+kernel mode.
+
+31
+00:04:10.500 --> 00:04:17.839
+Predict, change a small model, and inspect evidence: a mistaken
+prediction opens a learning opportunity rather than costing points.
+
+32
+00:04:18.039 --> 00:04:26.695
+Choose observations that support your explanation, use hints if
+needed, and apply the concept to a changed situation rather than
+repeat buttons.
+
+33
+00:04:26.895 --> 00:04:34.934
+This video is optional; investigations unlock mastery without a
+timer, while deeper notes and references remain available when you
+want more detail.
+
+34
+00:04:35.500 --> 00:04:44.467
+By the end, distinguish a program, a process, and a thread using
+observations, not definitions alone, and explain why a virtual
+address needs context.
+
+35
+00:04:44.667 --> 00:04:50.987
+Follow a selected operating-system request and connect the ideas
+into an evidence-backed description of a healthy workstation.
+
+36
+00:04:51.187 --> 00:04:59.925
+This is a teaching campaign, not live Windows telemetry or a
+complete emulator; start First Contact when ready, and build
+understanding one discovery at a time.

@@ -1,0 +1,171 @@
+{
+  "level": 1,
+  "title": "Meet the operating system",
+  "subtitle": "Your first five minutes inside the machine",
+  "durationSeconds": 300,
+  "video": "/media/level-1/intro.mp4",
+  "poster": "/media/level-1/poster.jpg",
+  "captions": "/media/level-1/captions.vtt",
+  "production": "AI-authored script and diagrams, locally rendered with synthetic narration. These are teaching illustrations, not live Windows recordings.",
+  "summary": "Discover programs, processes, threads, private virtual addresses, and the boundary between application work and Windows services. Then investigate a healthy workstation using evidence.",
+  "sources": [
+    {
+      "label": "Microsoft: processes and threads",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/procthread/about-processes-and-threads"
+    },
+    {
+      "label": "Microsoft: virtual address spaces",
+      "url": "https://learn.microsoft.com/en-us/windows-hardware/drivers/gettingstarted/virtual-address-spaces"
+    },
+    {
+      "label": "Microsoft: user mode and kernel mode",
+      "url": "https://learn.microsoft.com/en-us/windows-hardware/drivers/gettingstarted/user-mode-and-kernel-mode"
+    }
+  ],
+  "chapters": [
+    {
+      "startSeconds": 0,
+      "title": "Welcome to the training workstation",
+      "diagram": "overview",
+      "labels": ["A curious learner", "A small experiment", "A clear explanation"],
+      "takeaway": "Your mission: understand the mechanism, not memorize the label.",
+      "narration": [
+        "Welcome to Inside the Machine, where a training workstation lets you experiment, make predictions, and discover what happens behind an application.",
+        "Level one starts with an installed program and a running instance; no debugger, Windows experience, or virtual machine is needed.",
+        "Your goal is to connect a few observations into a useful explanation of a healthy application, rather than memorize disconnected names."
+      ]
+    },
+    {
+      "startSeconds": 25,
+      "title": "A program can exist without running",
+      "diagram": "program",
+      "labels": ["atlas-notes.exe", "Stored on disk", "No process yet"],
+      "takeaway": "Installed is not the same as executing.",
+      "narration": [
+        "Atlas Notes is installed but not open: its executable is a program on disk, containing instructions and data that can be loaded.",
+        "The file remains when no instances are running, so finding it in a folder does not prove that instructions are executing.",
+        "In First Contact, inspect the file, predict what launching changes, and watch the process list: installed is not the same as running."
+      ]
+    },
+    {
+      "startSeconds": 50,
+      "title": "One program, independent processes",
+      "diagram": "processes",
+      "labels": ["One executable", "Process 4100", "Process 4104"],
+      "takeaway": "Separate running instances can share an executable, not an identity.",
+      "narration": [
+        "Our fictional Atlas Notes supports independent instances: opening it twice creates two processes from one executable, each with a different live process identifier.",
+        "Close one and observe the survivor; the executable remains, because closing an instance does not uninstall the program.",
+        "Real applications may reuse or create multiple processes; this model is deliberately simple, and Windows can reuse identifiers after a process exits."
+      ]
+    },
+    {
+      "startSeconds": 75,
+      "title": "A process holds context and resources",
+      "diagram": "container",
+      "labels": ["Process identity", "Virtual address space", "Threads and resources"],
+      "takeaway": "A process is more than a window.",
+      "narration": [
+        "A process holds execution context and resources, including a virtual address space and one or more threads that can execute instructions.",
+        "It is more than a window: processes can exist without visible windows, and a visible application can involve several processes.",
+        "For now, inspect identity and ownership: which process owns this work, what belongs to it, and what does your evidence actually establish?"
+      ]
+    },
+    {
+      "startSeconds": 100,
+      "title": "Threads do the executing",
+      "diagram": "threads",
+      "labels": ["UI thread", "Worker thread", "One process"],
+      "takeaway": "Windows schedules threads, not an entire process as one unit.",
+      "narration": [
+        "Threads execute instructions inside a process: one might handle interface work while another performs an export, both belonging to the same process.",
+        "A long export on the interface thread can delay input; moving suitable work to a worker can help the interface progress.",
+        "But another thread does not create more processor capacity; distinguish who owns the work from when it can actually run."
+      ]
+    },
+    {
+      "startSeconds": 125,
+      "title": "Taking turns is not running in parallel",
+      "diagram": "cpu",
+      "labels": ["Ready", "Running", "Waiting"],
+      "takeaway": "More threads do not automatically mean simultaneous execution.",
+      "narration": [
+        "On one logical processor, our model runs one thread at a time; multiple threads can make progress by taking turns.",
+        "A ready thread can run; a waiting thread needs an event or resource first, so unfinished work does not necessarily mean busy computation.",
+        "This timeline illustrates states, not Windows scheduling policy; later levels explore processors and dependencies, while today you distinguish ready, running, and waiting."
+      ]
+    },
+    {
+      "startSeconds": 150,
+      "title": "An address needs a process context",
+      "diagram": "address",
+      "labels": ["Process A: 0x1000", "Process B: 0x1000", "Different mappings"],
+      "takeaway": "The same virtual address need not refer to the same data.",
+      "narration": [
+        "A virtual address needs an address-space context: the same written address in two processes need not refer to the same underlying data.",
+        "In A Private Address Book, inspect separate mappings, change one process's value, and read the other value to check your prediction.",
+        "Do not confuse the virtual map with physical memory; deeper questions about backing, commitment, and residency belong to the memory level."
+      ]
+    },
+    {
+      "startSeconds": 175,
+      "title": "Isolation is a model, not a magical wall",
+      "diagram": "isolation",
+      "labels": ["Private mapping A", "Private mapping B", "Explicit sharing is different"],
+      "takeaway": "This experiment uses separate mappings; sharing is possible.",
+      "narration": [
+        "Separate address spaces help isolate ordinary application memory, but processes can still communicate or intentionally share memory through suitable mechanisms.",
+        "Our experiment excludes shared mappings and cross-process access, so an unchanged second value describes these particular mappings, not every possible interaction.",
+        "Explain the experiment's conditions as well as its result; later, sharing and copy-on-write will add depth to this address-space model."
+      ]
+    },
+    {
+      "startSeconds": 200,
+      "title": "Follow a request across the boundary",
+      "diagram": "boundary",
+      "labels": ["Application: user mode", "OS service: kernel mode", "Result returns"],
+      "takeaway": "A service request does not require a new process.",
+      "narration": [
+        "Applications can calculate in user mode, while selected operations, such as our modeled file request, need services across the user and kernel boundary.",
+        "Follow the request: in this service path, the same calling thread enters kernel mode and returns with a result, without creating another process.",
+        "Not every application interface enters the kernel, and kernel mode does not guarantee unrestricted access; permissions still matter."
+      ]
+    },
+    {
+      "startSeconds": 225,
+      "title": "Build a map of responsibilities",
+      "diagram": "architecture",
+      "labels": ["Application and service boundary", "Executive, kernel, drivers", "Hardware"],
+      "takeaway": "A conceptual map explains cooperation, not a universal call stack.",
+      "narration": [
+        "Connect the pieces: applications request services, executive components manage memory and input and output, and the kernel coordinates activities including thread scheduling.",
+        "Drivers participate in selected device paths, with hardware underneath; explain these responsibilities using the request traces you have already followed.",
+        "This maps cooperation, not a universal call sequence; also distinguish the kernel component from everything that executes in kernel mode."
+      ]
+    },
+    {
+      "startSeconds": 250,
+      "title": "Predict, experiment, explain, transfer",
+      "diagram": "loop",
+      "labels": ["Predict and try", "Collect evidence", "Explain and transfer"],
+      "takeaway": "A wrong prediction is useful; an unsupported explanation is not mastery.",
+      "narration": [
+        "Predict, change a small model, and inspect evidence: a mistaken prediction opens a learning opportunity rather than costing points.",
+        "Choose observations that support your explanation, use hints if needed, and apply the concept to a changed situation rather than repeat buttons.",
+        "This video is optional; investigations unlock mastery without a timer, while deeper notes and references remain available when you want more detail."
+      ]
+    },
+    {
+      "startSeconds": 275,
+      "title": "Your Level 1 mission",
+      "diagram": "goals",
+      "labels": ["Distinguish program / process / thread", "Explain private virtual addresses", "Follow and justify an OS request"],
+      "takeaway": "Start First Contact. Small discoveries become a connected mental model.",
+      "narration": [
+        "By the end, distinguish a program, a process, and a thread using observations, not definitions alone, and explain why a virtual address needs context.",
+        "Follow a selected operating-system request and connect the ideas into an evidence-backed description of a healthy workstation.",
+        "This is a teaching campaign, not live Windows telemetry or a complete emulator; start First Contact when ready, and build understanding one discovery at a time."
+      ]
+    }
+  ]
+}
