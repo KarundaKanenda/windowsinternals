@@ -28,7 +28,7 @@ export function isUnlocked(id: string, completed: readonly string[]): boolean {
     : coreIds.every(previous => completed.includes(previous))
 }
 
-function validRecord(value: unknown): value is { version: 1; completed: string[] } {
+export function validRecord(value: unknown): value is { version: 1; completed: string[] } {
   if (typeof value !== 'object' || value === null || !('version' in value) || value.version !== 1
     || !('completed' in value) || !Array.isArray(value.completed)) return false
   const completed: unknown[] = value.completed

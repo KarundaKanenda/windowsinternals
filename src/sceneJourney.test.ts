@@ -3,6 +3,7 @@ import { allScenes } from './scenes'
 import { createSceneState, sceneReducer } from './sceneEngine'
 import { completeMission, loadProgress, type StorageLike } from './progress'
 import type { Experiment } from './scenes/types'
+import { advanceCheckpoint, updateGameCheckpoint, newCheckpoint, parseGameSave, restoreCheckpoint, type GameSave } from './gameSave'
 
 function assessmentRoute(experiment: Experiment): string[] {
   const queue = [{ nodeId: experiment.initial, actions: [] as string[], evidence: new Set<string>() }]
@@ -23,6 +24,38 @@ function assessmentRoute(experiment: Experiment): string[] {
 }
 
 describe('playable campaign journeys', () => {
+  it('resumes selected evidence and hints in both investigations and records mastery atomically', () => {
+    const scene = allScenes[0]
+    let save: GameSave = { version: 1, contentVersion: 1, completed: [], checkpoint: newCheckpoint(scene.id) }
+    for (const experiment of [scene.guided, scene.transfer]) {
+      save = updateGameCheckpoint(save, advanceCheckpoint(save.checkpoint!, { type: 'predict', choice: 0 }))
+      for (const actionId of assessmentRoute(experiment)) {
+        save = updateGameCheckpoint(save, advanceCheckpoint(save.checkpoint!, { type: 'act', actionId }))
+      }
+      save = updateGameCheckpoint(save, advanceCheckpoint(save.checkpoint!, { type: 'assess' }))
+      save = updateGameCheckpoint(save, {
+        ...save.checkpoint!, draft: { choice: 1, evidenceIds: [experiment.investigation.requiredEvidence[0]] }, hintCount: 2,
+      })
+      save = parseGameSave(JSON.stringify(save))
+      expect(restoreCheckpoint(save.checkpoint!).phase).toBe('explain')
+      expect(save.checkpoint!.draft.evidenceIds).toHaveLength(1)
+      expect(save.checkpoint!.draft.choice).toBe(1)
+      expect(save.checkpoint!.hintCount).toBe(2)
+      save = updateGameCheckpoint(save, advanceCheckpoint(save.checkpoint!, {
+        type: 'explain', choice: experiment.investigation.correct,
+        evidenceIds: experiment.investigation.requiredEvidence,
+      }))
+      expect(save.checkpoint!.draft).toEqual({ choice: null, evidenceIds: [] })
+      expect(save.completed).toEqual(experiment === scene.guided ? [] : ['l1-1'])
+    }
+    expect(restoreCheckpoint(save.checkpoint!).phase).toBe('complete')
+    save = updateGameCheckpoint(save, advanceCheckpoint(save.checkpoint!, { type: 'reset' }))
+    expect(save.completed).toEqual(['l1-1'])
+    expect(save.checkpoint!.hintCount).toBe(0)
+    expect(save.checkpoint!.actions).toEqual([])
+    expect(restoreCheckpoint(save.checkpoint!).phase).toBe('predict')
+  })
+
   for (const scene of allScenes) {
     it(`${scene.id} requires two completed evidence investigations despite incorrect predictions`, () => {
       let state = createSceneState(scene)

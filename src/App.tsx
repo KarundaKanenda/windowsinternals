@@ -1,23 +1,30 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { campaign } from './campaign'
 import { allScenes, coreScenes, capstoneScenes } from './scenes'
-import { completeMission, isUnlocked, loadProgress, saveProgress } from './progress'
+import { isUnlocked } from './progress'
+import { loadGameSave, newCheckpoint, persistGameSave, updateGameCheckpoint, type GameSave } from './gameSave'
 import { ScenePlayer } from './ScenePlayer'
 import { LevelBriefing } from './LevelBriefing'
+import { SaveControls } from './SaveControls'
 import './App.css'
 
 const FirstContact = lazy(() => import('./FirstContact'))
 const chapterTags = ['First discoveries', 'Bring work to life', 'Restore coordination', 'Make memory visible', 'Deliver safely', 'Workstation rescue']
 
 function App() {
-  const [progress, setProgress] = useState(loadProgress)
+  const [saved, setSaved] = useState(loadGameSave)
+  const currentSave = useRef(saved)
+  const progress = { ...saved, completed: saved.save.completed }
   const [level, setLevel] = useState(() => {
+    const active = allScenes.find(scene => scene.id === saved.save.checkpoint?.sceneId)
+    if (active) return active.level
     const first = allScenes.find(scene => !progress.completed.includes(scene.id))
     return first?.level ?? 6
   })
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(saved.save.checkpoint?.sceneId ?? null)
   const [page, setPage] = useState<'journey' | 'notebook' | 'advanced'>('journey')
   const [practice, setPractice] = useState(false)
+  const [restoration, setRestoration] = useState(0)
   const mainRef = useRef<HTMLElement>(null)
   const returnFocus = useRef<string | null>(null)
   const scene = allScenes.find(item => item.id === selectedId)
@@ -26,6 +33,33 @@ function App() {
   const mastered = scenes.filter(item => progress.completed.includes(item.id)).length
   const next = allScenes.find(item => !progress.completed.includes(item.id) && isUnlocked(item.id, progress.completed))
   const coreMastery = coreScenes.filter(item => progress.completed.includes(item.id)).length
+
+  function storeGame(save: GameSave, replace = false) {
+    const previous = currentSave.current
+    const writable = replace || previous.writable
+    let error = replace ? '' : previous.error
+    if (writable) {
+      try {
+        persistGameSave(save)
+        error = ''
+      } catch (cause) {
+        error = `Game updated for this session, but could not be saved: ${cause instanceof Error ? cause.message : String(cause)}. Export a backup before leaving.`
+      }
+    }
+    const next = { save, error, writable }
+    currentSave.current = next
+    setSaved(next)
+  }
+
+  function restoreGame(save: GameSave) {
+    storeGame(save, true)
+    const checkpointScene = allScenes.find(item => item.id === save.checkpoint?.sceneId)
+    const firstUnfinished = allScenes.find(item => !save.completed.includes(item.id))
+    setLevel(checkpointScene?.level ?? firstUnfinished?.level ?? 6)
+    setSelectedId(save.checkpoint?.sceneId ?? null)
+    setPage('journey')
+    setRestoration(value => value + 1)
+  }
 
   useEffect(() => {
     if (practice || !returnFocus.current) return
@@ -49,6 +83,9 @@ function App() {
   function openScene(id: string) {
     const target = allScenes.find(item => item.id === id)
     if (!target) return
+    if (isUnlocked(id, currentSave.current.save.completed) && currentSave.current.save.checkpoint?.sceneId !== id) {
+      storeGame(updateGameCheckpoint(currentSave.current.save, newCheckpoint(id)))
+    }
     setLevel(target.level)
     setSelectedId(id)
     setPage('journey')
@@ -90,7 +127,8 @@ function App() {
           <div className="topbar-right"><span className="pill">NO VM REQUIRED</span><span className="avatar" aria-label={`${progress.completed.length} scenes mastered`}>{progress.completed.length}</span></div>
         </header>
         <main id={practice ? 'campaign-main' : 'main'} ref={mainRef} tabIndex={-1}>
-          {progress.error && <div className="notice error" role="alert">{progress.error}{progress.writable && <button className="button secondary" onClick={() => setProgress(saveProgress(progress))}>Retry saving mastery</button>}</div>}
+          <SaveControls save={saved.save} onRestore={restoreGame} />
+          {progress.error && <div className="notice error" role="alert">{progress.error}{progress.writable && <button className="button secondary" onClick={() => storeGame(currentSave.current.save)}>Retry saving game</button>}</div>}
           {page === 'notebook' ? (
             <section className="campaign-view">
               <div className="eyebrow">YOUR EVIDENCE OF GROWTH</div>
@@ -120,7 +158,12 @@ function App() {
           ) : scene ? (
             <>
               {isUnlocked(scene.id, progress.completed) ? (
-                <ScenePlayer key={scene.id} scene={scene} mastered={progress.completed.includes(scene.id)} onComplete={id => setProgress(completeMission(progress, id))} onExit={backToChapter} />
+                <ScenePlayer
+                  key={`${scene.id}-${restoration}`} scene={scene} mastered={progress.completed.includes(scene.id)}
+                  checkpoint={saved.save.checkpoint ?? newCheckpoint(scene.id)}
+                  onCheckpointChange={checkpoint => storeGame(updateGameCheckpoint(currentSave.current.save, checkpoint))}
+                  onExit={backToChapter}
+                />
               ) : (
                 <section className="panel locked-briefing">
                   <div className="eyebrow">MISSION BRIEFING / NOT YET UNLOCKED</div><h1>{scene.title}</h1><p>{scene.guided.briefing}</p><div className="objective"><span>WHAT YOU WILL DISCOVER</span><p>{scene.objective}</p></div>

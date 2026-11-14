@@ -1,5 +1,13 @@
 .app-shell { display: flex; min-height: 100vh; }
 .app-shell[hidden] { display: none; }
+.save-controls { padding: 16px 20px; margin-bottom: 24px; }
+.save-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.save-actions strong { margin-right: auto; font-size: 13px; }
+.save-controls p { font-size: 12px; margin: 10px 0 0; overflow-wrap: anywhere; }
+.save-controls [role="alert"] { color: #983b2d; }
+.save-preview { margin-top: 16px; padding-top: 16px; border-top: 1px solid #dce4eb; }
+.save-preview h2 { font-size: 16px; }
+.save-preview .save-actions { margin-top: 12px; }
 .sidebar { width: 250px; flex-shrink: 0; background: #152637; color: #dae3ed; padding: 30px 20px; display: flex; flex-direction: column; }
 .brand { display: flex; align-items: center; gap: 12px; color: #fff; text-decoration: none; font-size: 15px; font-weight: 650; margin-bottom: 49px; }
 .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; color: #7dddd0; }

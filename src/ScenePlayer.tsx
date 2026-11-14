@@ -1,15 +1,16 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { Check, Evidence, Scene } from './scenes/types'
 import {
-  createSceneState, sceneReducer,
   type SceneEngineAction, type SceneState,
 } from './sceneEngine'
+import { advanceCheckpoint, restoreCheckpoint, type CheckDraft, type RunCheckpoint } from './gameSave'
 import './ScenePlayer.css'
 
 export interface ScenePlayerProps {
   scene: Scene
   mastered: boolean
-  onComplete: (id: string) => void
+  checkpoint: RunCheckpoint
+  onCheckpointChange: (checkpoint: RunCheckpoint) => void
   onExit: () => void
 }
 
@@ -33,15 +34,16 @@ function EvidenceCard({ evidence }: { evidence: Evidence }) {
 }
 
 function CheckForm({
-  check, evidence, onSubmit,
+  check, evidence, draft, onDraftChange, onSubmit,
 }: {
   check: Check
   evidence?: Evidence[]
+  draft: CheckDraft
+  onDraftChange: (draft: CheckDraft) => void
   onSubmit: (choice: number, evidenceIds: string[]) => void
 }) {
   const groupId = useId()
-  const [choice, setChoice] = useState<number | null>(null)
-  const [selected, setSelected] = useState<string[]>([])
+  const { choice, evidenceIds: selected } = draft
   return (
     <form className="scene-check" onSubmit={event => {
       event.preventDefault()
@@ -57,8 +59,10 @@ function CheckForm({
                 <input
                   type="checkbox"
                   checked={selected.includes(item.id)}
-                  onChange={event => setSelected(current => event.target.checked
-                    ? [...current, item.id] : current.filter(id => id !== item.id))}
+                  onChange={event => onDraftChange({
+                    ...draft, evidenceIds: event.target.checked
+                      ? [...selected, item.id] : selected.filter(id => id !== item.id),
+                  })}
                 />
                 <span>
                   <span className="scene-card-label">{item.label}</span>
@@ -78,7 +82,7 @@ function CheckForm({
             <input
               type="radio" name={groupId} value={index}
               checked={choice === index}
-              onChange={() => setChoice(index)}
+              onChange={() => onDraftChange({ ...draft, choice: index })}
               required
             />
             <span>{option}</span>
@@ -93,10 +97,10 @@ function CheckForm({
   )
 }
 
-function SceneRun({ scene, mastered, onComplete, onExit }: ScenePlayerProps) {
-  const [state, setState] = useState(() => createSceneState(scene))
-  const currentState = useRef(state)
-  const [hintCount, setHintCount] = useState(0)
+function SceneRun({ scene, mastered, checkpoint, onCheckpointChange, onExit }: ScenePlayerProps) {
+  const state = useMemo(() => restoreCheckpoint(checkpoint), [checkpoint])
+  const currentCheckpoint = useRef(checkpoint)
+  const hintCount = checkpoint.hintCount
   const [attempt, setAttempt] = useState(0)
   const stepHeading = useRef<HTMLHeadingElement>(null)
   const experiment = scene[state.mode]
@@ -106,20 +110,23 @@ function SceneRun({ scene, mastered, onComplete, onExit }: ScenePlayerProps) {
   const label = state.mode === 'guided' ? 'Guided investigation' : 'Changed-condition transfer'
 
   useEffect(() => {
+    currentCheckpoint.current = checkpoint
+  }, [checkpoint])
+
+  useEffect(() => {
     stepHeading.current?.focus()
   }, [state.mode, state.phase, attempt])
 
+  function update(next: RunCheckpoint) {
+    currentCheckpoint.current = next
+    onCheckpointChange(next)
+  }
+
   function send(action: SceneEngineAction) {
-    // The ref makes repeated synchronous events safe; completion is an event, not an effect.
-    const previous = currentState.current
-    const next = sceneReducer(scene, previous, action)
-    currentState.current = next
-    setState(next)
+    update(advanceCheckpoint(currentCheckpoint.current, action))
     if (action.type === 'reset') {
-      setHintCount(0)
       setAttempt(current => current + 1)
     }
-    if (previous.phase !== 'complete' && next.phase === 'complete') onComplete(scene.id)
   }
 
   return (
@@ -191,6 +198,8 @@ function SceneRun({ scene, mastered, onComplete, onExit }: ScenePlayerProps) {
                   <CheckForm
                     key={`${attempt}-${state.mode}-predict`}
                     check={experiment.prediction}
+                    draft={checkpoint.draft}
+                    onDraftChange={draft => update({ ...currentCheckpoint.current, draft })}
                     onSubmit={choice => send({ type: 'predict', choice })}
                   />
                 </div>
@@ -212,6 +221,8 @@ function SceneRun({ scene, mastered, onComplete, onExit }: ScenePlayerProps) {
                   <CheckForm
                     key={`${attempt}-${state.mode}-explain`}
                     check={experiment.investigation}
+                    draft={checkpoint.draft}
+                    onDraftChange={draft => update({ ...currentCheckpoint.current, draft })}
                     evidence={Object.values(state.observed)}
                     onSubmit={(choice, evidenceIds) => send({ type: 'explain', choice, evidenceIds })}
                   />
@@ -295,7 +306,9 @@ function SceneRun({ scene, mastered, onComplete, onExit }: ScenePlayerProps) {
                 : 'Explore contrasting routes if you need to. Completion depends on observations and a supported explanation, not clicking every button.'}</p>
               {scene.hints.length > 0 && (
                 <div className="scene-hints">
-                  <button className="scene-button" onClick={() => setHintCount(count => count + 1)} disabled={hintCount >= scene.hints.length}>
+                  <button className="scene-button" onClick={() => update({
+                    ...currentCheckpoint.current, hintCount: Math.min(currentCheckpoint.current.hintCount + 1, scene.hints.length),
+                  })} disabled={hintCount >= scene.hints.length}>
                     {hintCount >= scene.hints.length ? 'All hints revealed' : `Reveal hint ${hintCount + 1} of ${scene.hints.length}`}
                   </button>
                   <ol aria-live="polite">
